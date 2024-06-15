@@ -1,0 +1,136 @@
+html,body
+{
+  margin: 0px;
+    height: 100vh;
+    /* font-family: 'Poppins'; */
+    position:relative;
+    z-index: 0;
+}
+.dat-gui-container {
+  position: absolute;
+  display: none;
+  width: 300px;
+  margin: auto;
+  bottom: 0px;
+  left: 0px;
+}
+.dat-gui-slider {
+  position: absolute;
+  width: 100%;
+  left: 6vw;
+  bottom: 10vh;
+}
+.dat-gui-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  background: #ffffff;
+  outline: none;
+  border-radius: 5px;
+  margin: 0;
+  transition: background 0.2s;
+}
+.dat-gui-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 9px;
+}
+
+.loader {
+  width: 50%;
+  height: 4px;
+  background: linear-gradient(to right, #A204E8, #E92A6E, #E94309); /* градиентная линия */
+  animation: moveRight 4s linear infinite; /* анимация движения вправо */
+}
+
+@keyframes moveRight {
+  0% {
+      transform: translateX(-0%);
+  }
+  100% {
+      transform: translateX(100%);
+  }
+}
+
+.disp {
+    display: block;
+  }
+ 
+.webgl
+{
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+.interface{
+  width: 4vw;
+  height: 15%;
+  position: absolute;
+  bottom: 0px;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-around;
+  margin: 20px;
+}
+.interface button{
+  width: 100%;
+  height: 20%;
+  border-radius: 50px;
+  border: none;
+  background-color: #fff;
+}
+#selector_textures{
+  border-radius:50px;
+  width: 13%;
+  height: 3%;
+  position: absolute;
+  left: 6vw;
+  bottom: 2vh;
+  display: flex;
+  justify-content: space-between;
+  color:#fff;
+}
+#elem_product{
+  border-radius:50px;
+  width: 13%;
+  height: 3%;
+  position: absolute;
+  left: 6vw;
+  bottom: 6vh;
+  display: flex;
+  justify-content: space-between;
+  color:#fff;
+}
+button {
+  border: none;
+  border-radius: 10px;
+  color:#fff;
+  background: linear-gradient(to right, #A204E8, #E92A6E, #E94309);
+}
+button:hover{
+  cursor: pointer;
+  background: #7420c8;
+  color:#fff;
+}
+button:focus{
+  cursor: pointer;
+  background: #4a147f;
+  color:#fff;
+}
+
