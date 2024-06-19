@@ -12,9 +12,6 @@ const canvas = document.querySelector('canvas.webgl');
 // Scene
 const scene = new THREE.Scene();
 
-// Создание экземпляра объекта ViewModal
-let viewModal = new ViewModal();
-
 // Модели
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('/draco/');
@@ -25,65 +22,8 @@ gltfLoader.setDRACOLoader(dracoLoader);
 // Текстуры
 const textureLoader = new THREE.TextureLoader();
 
-
-let bc = [
-    '/textures/BaseColor/D2_wood2. DoorBase. BC.png',
-    '/textures/BaseColor/D1_wood1. DoorBase. BC.png',
-    '/textures/BaseColor/H1_Silver. Handle. BC.png',
-    '/textures/BaseColor/W1_Glass. Window. BC.png',
-    '/textures/BaseColor/D3_BlackPlastic. DoorBase. BC.png',
-    '/textures/BaseColor/H2_Gold. Handle. BC.png',
-    '/textures/BaseColor/H3_GlossyPlastic. Handle. BC.png',
-    '/textures/BaseColor/W2_Mirror. Window. BC.png',
-    '/textures/BaseColor/W3_MatteGlass. Window. BC.png'
-];
-
-let roughMet = [
-    '/textures/RoughMet/D1_wood1. DoorBase. RM.png',
-    '/textures/RoughMet/H1_Silver. Handle. RM.png',
-    '/textures/RoughMet/D2_wood2. DoorBase. RM.png',
-    '/textures/RoughMet/H2_Gold. Handle. RM.png',
-    '/textures/RoughMet/D3_BlackPlastic. DoorBase. RM.png',
-    '/textures/RoughMet/H3_GlossyPlastic. Handle. RM.png',
-    '/textures/RoughMet/W1_Glass. Window. RM.png',
-    '/textures/RoughMet/W2_Mirror. Window. RM.png',
-    '/textures/RoughMet/W3_MatteGlass. Window. RM.png'
-];
-let nrm = [
-    '/textures/NRM/D2_wood2. DoorBase. NRM.png' 
-]
-viewModal.processTextures(bc, roughMet, nrm);
-
-// Создание материалов
-const createMaterials = (textures) => {
-    let materials = [];
-    for (let key in textures) {
-        if (textures.hasOwnProperty(key)) {
-            let texture = textures[key];
-            let material = new THREE.MeshPhysicalMaterial({
-                map: new THREE.TextureLoader().load(texture.map),
-                roughnessMap: new THREE.TextureLoader().load(texture.roughnessMap),
-                normalMap: texture.normalMap ? new THREE.TextureLoader().load(texture.normalMap) : null,
-            });
-            materials.push(material);
-        }
-    }
-    return materials;
-};
-
-const firstMaterials = createMaterials(viewModal.firstTextures);
-const secondMaterials = createMaterials(viewModal.secondTextures);
-const thirdMaterials = createMaterials(viewModal.thirdTextures);
-console.log(firstMaterials)
-console.log(secondMaterials)
-console.log(thirdMaterials)
-
-const addModel = [
-    {id:1, nameModel:'/models/DoorSmall. Closed.glb'}
-    // {id:2, nameModel:'/models/DoorSmall. Open1.glb'},
-    // {id:3, nameModel:'/models/DoorBig. Closed.glb'},
-    // {id:4, nameModel:'/models/DoorBig. Open1.glb'}
-];
+// Создание экземпляра объекта ViewModal
+let viewModal = new ViewModal(textureLoader);
 
 // Создание группы для источников света
 const lightHolder = new THREE.Group();
@@ -133,92 +73,142 @@ const renderer = new THREE.WebGLRenderer({
 renderer.localClippingEnabled = true;
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor('#00ff00', 1); // "#cfcfcf"
+renderer.setClearColor('#4287f5', 1); // "#cfcfcf"
 
-let one = document.getElementById("1")
-let two = document.getElementById("2")
-let three = document.getElementById("3")
+let bc = [
+    '/textures/BaseColor/D1_wood1. DoorBase. BC.png',
+    '/textures/BaseColor/D2_wood2. DoorBase. BC.png',
+    '/textures/BaseColor/D3_BlackPlastic. DoorBase. BC.png',
+    '/textures/BaseColor/H1_Silver. Handle. BC.png',
+    '/textures/BaseColor/H2_Gold. Handle. BC.png',
+    '/textures/BaseColor/H3_GlossyPlastic. Handle. BC.png',
+    '/textures/BaseColor/W1_Glass. Window. BC.png',
+    '/textures/BaseColor/W2_Mirror. Window. BC.png',
+    '/textures/BaseColor/W3_MatteGlass. Window. BC.png'
+];
 
-let doorBaseMaterial, handleBaseMaterial, windowBaseMaterial;
+let roughMet = [
+    '/textures/RoughMet/D1_wood1. DoorBase. RM.png',
+    '/textures/RoughMet/D2_wood2. DoorBase. RM.png',
+    '/textures/RoughMet/D3_BlackPlastic. DoorBase. RM.png',
+    '/textures/RoughMet/H1_Silver. Handle. RM.png',
+    '/textures/RoughMet/H2_Gold. Handle. RM.png',
+    '/textures/RoughMet/H3_GlossyPlastic. Handle. RM.png',
+    '/textures/RoughMet/W1_Glass. Window. RM.png',
+    '/textures/RoughMet/W2_Mirror. Window. RM.png',
+    '/textures/RoughMet/W3_MatteGlass. Window. RM.png'
+];
+let nrm = [
+    '/textures/NRM/D2_wood2. DoorBase. NRM.png' 
+]
 
-one.addEventListener('click', replaceMaterials);
+const addModel = [
+    '/models/DoorSmall. Closed.glb',
+    '/models/DoorSmall. Open1.glb',
+    '/models/DoorBig. Closed.glb',
+    '/models/DoorBig. Open1.glb',
+];
 
-// Загрузка моделей и добавление в сцену
-addModel.forEach(model => {
-    viewModal.additionModel(gltfLoader, model)
-        .then(loadedModel => {
-            loadedModel.rotation.y = 1.58;
-            loadedModel.position.y = -0.8;
-            const materials = {};
-            console.log(materials)
+let currentModel;
 
-            loadedModel.traverse((node) => {
-                if (node.isMesh) {
-                    const material = node.material;
-                    // Убедитесь, что имена материалов совпадают с ожидаемыми
-                    if (material.name) {
-                        materials[material.name] = material;
-                    }
-                }
-            });
+let firstBaseMaterial, secondBaseMaterial, thirdBaseMaterial;
 
-            // Извлечение конкретных материалов из объекта materials
-            doorBaseMaterial = materials['M1_DoorBase'];
-            handleBaseMaterial = materials['M2_Hanlde'];
-            windowBaseMaterial = materials['M3_Window'];
+viewModal.processTextures(bc, roughMet, nrm);
 
-            // Добавление загруженной модели в сцену
-            scene.add(loadedModel);
+// Prepare all material data
+viewModal.prepareMaterialData();
 
-        })
-        .catch(error => {
-            console.error(error);
-        });
+console.log(viewModal.firstTextures);
+console.log(viewModal.secondTextures);
+console.log(viewModal.thirdTextures);     
+
+// Загрузка и замена модели
+function switchModel(index) {
+    let modelsDiv = document.getElementById("models");
+    modelsDiv.innerHTML = '';
+    // Пример использования для моделей
+    viewModal.createButtonsModels(
+        addModel,
+        "Модель №",
+        "modelButton",
+        function(idx) {
+            switchModel(idx);
+        },
+        modelsDiv
+    );
+    // Удаляем текущую модель, если она существует
+    if (currentModel) {
+        scene.remove(currentModel);
+    }
+
+// Загружаем новую модель
+gltfLoader.load(addModel[index], (gltf) => {
+    currentModel = gltf.scene;
+    currentModel.rotation.y = 1.58;
+    currentModel.position.y = -0.8;
+
+    const materials = [];
+    currentModel.traverse((node) => {
+        if (node.isMesh) {
+            const material = node.material;
+            if (material) {
+                materials.push(material);
+            }
+        }
+    });
+
+    // Пример обращения к материалам по индексу
+    firstBaseMaterial = materials[0];
+    secondBaseMaterial = materials[1];
+    thirdBaseMaterial = materials[2];
+
+    // Добавляем новую модель в сцену
+    scene.add(currentModel);
+}, undefined, (error) => {
+    console.error('An error happened', error);
 });
 
-
-// Функция для замены материалов
-function replaceMaterials(buttonId) {
-    let index = 0;
-    if (buttonId === 'one') {
-        index = 0;
-    } else if (buttonId === 'two') {
-        index = 1;
-    } else if (buttonId === 'three') {
-        index = 2;
-    }
-
-    // Проверка наличия материала и наличия текстуры с заданным индексом
-    if (doorBaseMaterial && firstMaterials.length > index) {
-        doorBaseMaterial.map = firstMaterials[index].map;
-        doorBaseMaterial.roughnessMap = firstMaterials[index].roughnessMap;
-        doorBaseMaterial.normalMap = firstMaterials[index].normalMap;
-        doorBaseMaterial.needsUpdate = true;
-    }
-
-    if (handleBaseMaterial && secondMaterials.length > index) {
-        handleBaseMaterial.map = secondMaterials[index].map;
-        handleBaseMaterial.roughnessMap = secondMaterials[index].roughnessMap;
-        handleBaseMaterial.normalMap = secondMaterials[index].normalMap;
-        handleBaseMaterial.needsUpdate = true;
-    }
-
-    if (windowBaseMaterial && thirdMaterials.length > index) {
-        windowBaseMaterial.map = thirdMaterials[index].map;
-        windowBaseMaterial.roughnessMap = thirdMaterials[index].roughnessMap;
-        windowBaseMaterial.normalMap = thirdMaterials[index].normalMap;
-        windowBaseMaterial.needsUpdate = true;
-    }
 }
 
+// Инициализация интерфейса и загрузка первой модели
+switchModel(0);
 
-// Назначение обработчиков событий для кнопок
-one.addEventListener('click', () => replaceMaterials('one'));
-two.addEventListener('click', () => replaceMaterials('two'));
-three.addEventListener('click', () => replaceMaterials('three'));
+// Функция для замены материалов
+document.addEventListener('DOMContentLoaded', (event) => {
+    let materialsDiv = document.getElementById("materials");
+    materialsDiv.innerHTML = '';
 
-// Назначение обработчика событий для кнопки one
-// 
+    viewModal.createButtonsMaterials(
+        viewModal.firstMaterials,
+        "Полотно",
+        "button",
+        function(index) {
+            viewModal.accessMaterial(firstBaseMaterial, viewModal.firstMaterials, index);
+        },
+        materialsDiv
+    );
+
+    viewModal.createButtonsMaterials(
+        viewModal.secondMaterials,
+        "Ручка",
+        "button",
+        function(index) {
+            viewModal.accessMaterial(secondBaseMaterial, viewModal.secondMaterials, index);
+        },
+        materialsDiv
+    );
+
+    viewModal.createButtonsMaterials(
+        viewModal.thirdMaterials,
+        "Окно",
+        "button",
+        function(index) {
+            viewModal.accessMaterial(thirdBaseMaterial, viewModal.thirdMaterials, index);
+        },
+        materialsDiv
+    );
+});
+
 // Обновление сцены
 const tick = () => {
     controls.update();

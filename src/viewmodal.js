@@ -1,9 +1,13 @@
-// viewModel.js
 export default class ViewModal {
-    constructor() {
-        this.firstTextures = {};
-        this.secondTextures = {};
-        this.thirdTextures = {};
+    constructor(textureLoader) {
+        this.textureLoader = textureLoader;
+        this.firstTextures = [];
+        this.secondTextures = [];
+        this.thirdTextures = [];
+
+        this.firstMaterials = [];
+        this.secondMaterials = [];
+        this.thirdMaterials = [];
     }
 
     getKey(url) {
@@ -14,65 +18,99 @@ export default class ViewModal {
         return null;
     }
 
-    accessRough(textures, textureKey, url) {
+    accessTexture(textures, textureKey, url, mapType) {
         if (textures[textureKey]) {
-            textures[textureKey].roughnessMap = url;
+            textures[textureKey][mapType] = url;
         } else {
-            textures[textureKey] = { roughnessMap: url };
+            textures[textureKey] = { [mapType]: url };
         }
     }
-
-    accessNRM(textures, textureKey, url) {
-        if (textures[textureKey]) {
-            textures[textureKey].normalMap = url;
-        } else {
-            textures[textureKey] = { normalMap: url };
+    
+    addTexture(url, mapType) {
+        const key = this.getKey(url);
+        if (key) {
+            const textureKey = `${key.letter.toLowerCase()}Texture${key.number}`;
+            let targetTextures;
+            if (key.letter === 'D') {
+                targetTextures = this.firstTextures;
+            } else if (key.letter === 'H') {
+                targetTextures = this.secondTextures;
+            } else if (key.letter === 'W') {
+                targetTextures = this.thirdTextures;
+            }
+            if (targetTextures) {
+                this.accessTexture(targetTextures, textureKey, url, mapType);
+            }
         }
     }
-//---------------------------------------------
+    
     processTextures(bc, roughMet, nrm) {
         bc.forEach((url) => {
-            const key = this.getKey(url);
-            if (key) {
-                const textureKey = `${key.letter.toLowerCase()}Texture${key.number}`;
-                if (key.letter === 'D') {
-                    this.firstTextures[textureKey] = { map: url };
-                    
-                } else if (key.letter === 'H') {
-                    this.secondTextures[textureKey] = { map: url };
-                } else if (key.letter === 'W') {
-                    this.thirdTextures[textureKey] = { map: url };
-                }
-            }
+            this.addTexture(url, 'map');
         });
-
+    
         roughMet.forEach((url) => {
-            const key = this.getKey(url);
-            if (key) {
-                const textureKey = `${key.letter.toLowerCase()}Texture${key.number}`;
-                if (key.letter === 'D') {
-                    this.accessRough(this.firstTextures, textureKey, url);
-                } else if (key.letter === 'H') {
-                    this.accessRough(this.secondTextures, textureKey, url);
-                } else if (key.letter === 'W') {
-                    this.accessRough(this.thirdTextures, textureKey, url);
-                }
-            }
+            this.addTexture(url, 'roughnessMap');
         });
-
+    
         nrm.forEach((url) => {
-            const key = this.getKey(url);
-            if (key) {
-                const textureKey = `${key.letter.toLowerCase()}Texture${key.number}`;
-                if (key.letter === 'D') {
-                    this.accessNRM(this.firstTextures, textureKey, url);
-                } else if (key.letter === 'H') {
-                    this.accessNRM(this.secondTextures, textureKey, url);
-                } else if (key.letter === 'W') {
-                    this.accessNRM(this.thirdTextures, textureKey, url);
-                }
-            }
+            this.addTexture(url, 'normalMap');
         });
+    }    
+
+    prepareMaterialData() {
+        this.firstMaterials = this.prepareTexturesData(this.firstTextures);
+        this.secondMaterials = this.prepareTexturesData(this.secondTextures);
+        this.thirdMaterials = this.prepareTexturesData(this.thirdTextures);
+    }
+
+    prepareTexturesData(textures) {
+        let materialDataList = [];
+        for (let key in textures) {
+            if (textures.hasOwnProperty(key)) {
+                let texture = textures[key];
+                let materialData = {
+                    map: this.textureLoader.load(texture.map),
+                    roughnessMap: this.textureLoader.load(texture.roughnessMap),
+                    normalMap: texture.normalMap ? this.textureLoader.load(texture.normalMap) : null,
+                };
+                materialDataList.push(materialData);
+            }
+        }
+        return materialDataList;
+    }
+
+    createButtonsModels(items, textPrefix, idPrefix, clickHandler, container) {
+        items.forEach((item, index) => {
+            let button = document.createElement("button");
+            button.innerHTML = `${textPrefix} ${index + 1}`;
+            button.id = `${idPrefix}${index + 1}`;
+            button.onclick = function() {
+                clickHandler(index);
+            };
+            container.appendChild(button);
+        });
+    }
+
+    createButtonsMaterials(items, textPrefix, idPrefix, clickHandler, container) {
+        items.forEach((item, index) => {
+            let button = document.createElement("button");
+            button.innerHTML = `${textPrefix} ${index + 1}`;
+            button.id = `${idPrefix}${index + 1}`;
+            button.onclick = function() {
+                clickHandler(index);
+            };
+            container.appendChild(button);
+        });
+    }
+
+    accessMaterial(baseMaterial, materials, index) {
+        if (baseMaterial && materials.length > index) {
+            baseMaterial.map = materials[index].map;
+            baseMaterial.roughnessMap = materials[index].roughnessMap;
+            baseMaterial.normalMap = materials[index].normalMap;
+            baseMaterial.needsUpdate = true;
+        }
     }
 
     additionModel(gltfLoader, model) {
@@ -89,12 +127,5 @@ export default class ViewModal {
                 }
             );
         });
-    }
-    accessMaterial(doorBaseMaterial,doorMaterial){
-        if (doorBaseMaterial) {
-            doorBaseMaterial.map = doorMaterial.map;
-            doorBaseMaterial.roughnessMap = doorMaterial.roughnessMap;
-            doorBaseMaterial.normalMap = doorMaterial.normalMap;
-        }
     }
 }
